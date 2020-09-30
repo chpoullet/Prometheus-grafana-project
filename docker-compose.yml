@@ -1,0 +1,50 @@
+version: '3.2'
+
+services:
+  prometheus:
+    build:
+      context: Dockerfiles/Prometheus/
+    volumes:
+      - type: bind
+        source: ./Dockerfiles/Prometheus/config/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+        read_only: true
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - prometheus
+
+  grafana:
+     build:
+      context: Dockerfiles/Grafana/
+     container_name: grafana
+     ports:
+       - 3000:3000
+     networks:
+       - prometheus
+
+  nginx:
+    build:
+      context: ./Dockerfiles/Nginx/
+    container_name: nginx_app
+    volumes:
+      - ./Dockerfiles/Nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80
+      - 8080:8080
+
+  nginx_exporter:
+    build:
+      context: ./Dockerfiles/NginxExporter/
+    container_name: nginx_exporter
+    ports:
+      - 9113:9113
+    environment:
+      - SCRAPE_URI=http://nginx:8080/stub_status
+    depends_on:
+      - nginx
+
+networks:
+  prometheus:
+    driver: bridge
