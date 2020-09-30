@@ -27,23 +27,27 @@ services:
   nginx:
     build:
       context: ./Dockerfiles/Nginx/
-    container_name: nginx_app
+    container_name: nginx
     volumes:
-      - ./Dockerfiles/Nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./Dockerfiles/Nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 80:80
       - 8080:8080
+    networks:
+      - prometheus
 
-  nginx_exporter:
+  nginxexporter:
     build:
       context: ./Dockerfiles/NginxExporter/
-    container_name: nginx_exporter
+    container_name: nginxexporter
     ports:
       - 9113:9113
     environment:
       - SCRAPE_URI=http://nginx:8080/stub_status
     depends_on:
-      - nginx
+      - prometheus
+    networks:
+      - prometheus
 
 networks:
   prometheus:
